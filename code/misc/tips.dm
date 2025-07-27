@@ -5,7 +5,7 @@ newbieTIPS
 	var
 		tips = list(
 			"If you type 'scan' you can see the mobs in your area. Alternatively, you can also 'sense north' to see all mobs north of you.",
-			"In order to get to other planets, you need to defeat Vegeta on earth to learn how to summon your spacepod.",
+			"In order to get to other planets, you need to defeat Vegeta on Earth to learn how to summon your spacepod.",
 			"Looting corpses and grabbing tons of loot & zenni? Don't forget to head to Bulma's at 86.122 sell your loot!",
 			"When finishing a monster with snap, don't forget to loot corpse! You get zenni and potentially some equipment.",
 			"Have 2 pieces of equipment that have the same spot? compare them by 'compare \[item\]' to see the different benefits.",
@@ -18,27 +18,31 @@ newbieTIPS
 			"If you know you want to attack Roshi, you can 'fly roshi' and you'll fly directly to him.",
 			"Type 'skills' to see your skill list. If you want to learn how to get blast, type 'help blast'.",
 			"Dr. Briefs sells housing materials which lets you build a private house wherever you'd like!"
-			);
+		);
 
-	New(){
+	proc
+		sendTips()
+			if(!game.players.len)
+				return 0
+
+			var/tip_message = pick(tips)
+			var/recipients = 0
+
+			for(var/mob/Player/m in game.players)
+				if(m.channels.Find("TIPS") && !m.in_npc_menu)
+					send("{m\[{MTIP{m\]{W: {w[tip_message]}{x\n", m)
+					recipients++
+
+			return recipients
+
+	New()
 		..()
-	
 
-		spawn(){
-			var/goTime = (world.time + 15 SECONDS);
+		spawn(15 SECONDS)
+			while(src)
+				var/recipients = sendTips()
 
-			while(src){
-				if(world.time >= goTime) {
-					for(var/mob/Player/m in game.players){
-						if(m.channels.Find("TIPS") && !m.in_npc_menu){
-							send("{m\[{MTIP{m\]{W: {w[pick(tips)]{x\n",m);
-						}
-					}
-
-					goTime = (world.time + 15 MINUTES);
-				}
-
-				sleep(world.tick_lag);
-			}
-		}
-	}
+				if(recipients > 0)
+					sleep(15 MINUTES)
+				else
+					sleep(5 MINUTES)
