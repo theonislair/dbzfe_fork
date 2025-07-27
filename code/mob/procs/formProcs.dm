@@ -1,9 +1,85 @@
 mob
 	var
+		form_processing = FALSE
+		last_form_check = 0
+		form_drain_time = 0
+		form_effect_time = 0
 		tmp
 			checkForm = FALSE
 
 	proc
+		// Optimized form management system
+		startFormMaintenance(form_name, drain_amount = 2, drain_interval = 30 SECONDS, effect_interval = 1200){
+			if(form_processing) return
+			
+			form_processing = TRUE
+			form_drain_time = world.time + drain_interval
+			form_effect_time = world.time + effect_interval
+			
+			spawn() processFormMaintenance(form_name, drain_amount, drain_interval, effect_interval)
+		}
+
+		processFormMaintenance(form_name, drain_amount, drain_interval, effect_interval){
+			set waitfor = FALSE
+
+			while(src && !unconscious && form == form_name){
+				// Handle energy drain
+				if(world.time >= form_drain_time){
+					_doEnergy(-drain_amount)
+					form_drain_time = world.time + drain_interval
+				}
+
+				// Handle visual effects
+				if(world.time >= form_effect_time){
+					showFormEffects(form_name)
+					form_effect_time = world.time + effect_interval
+				}
+
+				// Efficient sleep based on next event
+				var/next_event = min(form_drain_time, form_effect_time)
+				var/sleep_time = max(10, next_event - world.time)
+				sleep(sleep_time)
+			}
+
+			// Form ended
+			if(src && form == form_name && unconscious){
+				endForm(form_name)
+			}
+
+			form_processing = FALSE
+		}
+
+		showFormEffects(form_name){
+			switch(form_name){
+				if("Super Saiyan"){
+					send("[pick("{Y[name] glows with a golden aura.{x","{YA bolt of energy streaks around [name].{x","{YElectricity arcs violently around [name].{x","{YA bolt of energy arcs around [name].{x")]",_ohearers(0,src))
+				}
+				if("Kaioken"){
+					send("[pick("{R[name] is surrounded by a red aura!{x","{RA red aura flickers around [name]!{x","{R[name] pulses with a crimson energy!{x")]",_ohearers(0,src))
+				}
+				if("Super Saiyan 2"){
+					send("[pick("{Y[name]'s golden aura surges with electricity!{x","{YElectric bolts dance around [name]!{x","{Y[name] radiates intense golden energy!{x")]",_ohearers(0,src))
+				}
+				// Add more form effects as needed
+			}
+		}
+
+		endForm(form_name){
+			switch(form_name){
+				if("Super Saiyan"){
+					form = "Normal";
+					send("Your hair falls into place, and your eyes return to their natural color.",src,TRUE);
+					send("[raceColor(name)]'s hair falls into place, and [determineSex(1)] eyes return to their natural color.",_ohearers(0,src));
+					// Restore appearance
+					visuals["hair_length"] = visuals["original_hair_length"]
+					visuals["hair_color"] = visuals["original_hair_color"]
+					visuals["hair_style"] = visuals["original_hair_style"]
+					visuals["eye_color"] = visuals["original_eye_color"]
+				}
+				// Add more form endings as needed
+			}
+		}
+
 		CheckForm(){
 			set waitfor = FALSE;
 

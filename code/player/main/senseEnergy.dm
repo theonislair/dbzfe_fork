@@ -1,19 +1,20 @@
 
 #define SENSE_DELAY 6 SECONDS
+#define SENSE_PROCESS_INTERVAL 3 SECONDS
 
 senseEnergy
 
 	New(mob/Player/m){
 		..()
 		p = m;
-		start();
+		scheduleProcessing();
 	}
 
 	var
 		mob/Player/p;
-
 		recentMessages[] = list()
 		junkMessages[] = list()
+		processing = FALSE;
 
 	proc
 		addMessage(ID,message,senseMessage=FALSE,DELAY=SENSE_DELAY){
@@ -22,6 +23,7 @@ senseEnergy
 					if((locate(/Command/Technique/sense) in p.techniques) && !("[ID] sense" in junkMessages)){
 						junkMessages += list("[ID] sense" = (world.time + DELAY))
 						recentMessages += list(ID = message)
+						scheduleProcessing();
 					}
 				}
 
@@ -29,29 +31,45 @@ senseEnergy
 					if((locate(/Command/Technique/sense) in p.techniques) && !("[ID] [message]" in junkMessages)){
 						junkMessages += list("[ID] [message]" = (world.time + DELAY))
 						recentMessages += list(ID = message)
+						scheduleProcessing();
 					}
 				}
 			}
 		}
 
-		start(){
+		scheduleProcessing(){
+			if(!processing && (length(recentMessages) > 0 || length(junkMessages) > 0)){
+				processing = TRUE;
+				spawn() processMessages();
+			}
+		}
+
+		processMessages(){
 			set waitfor = FALSE;
-			set background = TRUE;
 
-			while(p){
-				for(var/x in recentMessages){
-					send(recentMessages[x],p);
-					recentMessages.Remove(x);
-				}
-
-				for(var/y in junkMessages){
-					if(world.time >= junkMessages[y]){
-						junkMessages.Remove(y);
+			while(p && src && (length(recentMessages) > 0 || length(junkMessages) > 0)){
+				// Send any pending messages
+				if(length(recentMessages) > 0){
+					for(var/x in recentMessages){
+						send(recentMessages[x],p);
+						recentMessages.Remove(x);
 					}
 				}
 
-				sleep(world.tick_lag);
+				// Clean up expired junk messages
+				if(length(junkMessages) > 0){
+					for(var/y in junkMessages){
+						if(world.time >= junkMessages[y]){
+							junkMessages.Remove(y);
+						}
+					}
+				}
+
+				// Only continue processing if there are still items to process
+				if(length(recentMessages) > 0 || length(junkMessages) > 0){
+					sleep(SENSE_PROCESS_INTERVAL);
+				}
 			}
 
-			del(src);
+			processing = FALSE;
 		}

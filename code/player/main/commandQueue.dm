@@ -4,13 +4,13 @@ commandQueue
 		mob/mobRef = NULL;
 		curPos = NULL;
 		nextPos = NULL;
+		processing = FALSE;
 
 	New(mob/m){
 		mobRef = m;
 		mobRef.command = src;
 		curPos = 1;
 		nextPos = 1;
-		start();
 
 		..()
 	}
@@ -23,7 +23,7 @@ commandQueue
 		queue(var/command as text);
 		pop(var/pos as num);
 		aliasCheck(var/pos as num);
-		start();
+		processCommands();
 
 	aliasCheck(){
 		var/command = copytext(commands[curPos],1,findtext(commands[curPos]," "))
@@ -39,6 +39,11 @@ commandQueue
 
 	queue(var/command as text){
 		commands[nextPos++] = command;
+		
+		// Trigger processing only when needed
+		if(!processing && mobRef && mobRef.client && !mobRef.frozen && !mobRef.checkLocked()){
+			spawn() processCommands();
+		}
 	}
 
 	pop(var/pos as num){
@@ -54,19 +59,32 @@ commandQueue
 		}
 	}
 
-	start(){
+	processCommands(){
 		set waitfor = FALSE;
-		set background = TRUE;
+		processing = TRUE;
 
-		while(src && mobRef && mobRef.client){
+		while(src && mobRef && mobRef.client && curPos < nextPos){
+			// Wait for command cooldown if needed
+			while(mobRef && mobRef.client && mobRef.client.lastCMD >= world.time){
+				sleep(1); // Short sleep instead of tick_lag
+			}
+			
+			// Wait if player is locked
+			while(mobRef && mobRef.checkLocked()){
+				sleep(1);
+			}
 
-			while(mobRef && mobRef.client && mobRef.client.lastCMD >= world.time || mobRef && mobRef.checkLocked()){ sleep(world.tick_lag); }
-
-			if(length(commands[curPos]) > 0){ pop(curPos); }
-
-			sleep(world.tick_lag);
-
+			if(length(commands[curPos]) > 0){ 
+				pop(curPos); 
+			} else {
+				curPos++; // Skip empty commands
+			}
 		}
 
-		del(src);
+		processing = FALSE;
+		
+		// If more commands arrived while processing, restart
+		if(src && mobRef && mobRef.client && curPos < nextPos){
+			spawn() processCommands();
+		}
 	}

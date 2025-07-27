@@ -164,22 +164,35 @@ mob
 			regenStam(){
 				set waitfor = FALSE;
 
-				var
-					goTime=(world.time + 65);
+				if(regenStam || !AI) return;
 
 				regenStam = TRUE;
+				scheduleRegeneration();
+			}
+
+			scheduleRegeneration(){
+				spawn() processRegeneration();
+			}
+
+			processRegeneration(){
+				set waitfor = FALSE;
 
 				while(src && AI && curreng < getMaxEN()){
-					if(world.time>=goTime){
-						if(!unconscious){
-							energyMessage()
-							_doEnergy(2)
-						}else{
-							_doEnergy(1)
-						}
-						goTime=(world.time+65);
+					if(!unconscious){
+						energyMessage()
+						_doEnergy(2)
+					}else{
+						_doEnergy(1)
 					}
-					sleep(world.tick_lag)
+
+					// Smart sleep based on regeneration needs
+					if(curreng >= getMaxEN() * 0.9){
+						sleep(130) // Slow regen when nearly full
+					} else if(curreng >= getMaxEN() * 0.5){
+						sleep(65)  // Normal regen rate
+					} else {
+						sleep(35)  // Fast regen when low
+					}
 				}
 
 				regenStam = FALSE;
@@ -190,17 +203,15 @@ mob
 
 				return FALSE; // Temp until we have regen for mobs i guess?
 
-				var
-					refreshTime=(world.time + 65);
+				if(regenPL) return;
 
 				regenPL = TRUE;
 
 				while(src && currpl < getMaxPL()){
-					if(world.time >= refreshTime){
-						_doDamage(ret_percent(1.00,getMaxPL()))
-						refreshTime=(world.time + 65);
-					}
-					sleep(world.tick_lag)
+					_doDamage(ret_percent(1.00,getMaxPL()))
+					
+					// Efficient sleep for PL regeneration
+					sleep(65);
 				}
 
 				regenPL = FALSE;

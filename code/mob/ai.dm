@@ -98,7 +98,9 @@ mob
 			defenceChance = 11
 			defenceKiChance = 11
 			fakeChance = 5
-			//failedAttacks = 0;// After so many failed attacks lets for the lulz fake at 3 seconds...because why not.
+			ai_state = "IDLE"
+			ai_processing = FALSE
+			last_combat_check = 0
 			difficultyLevel = VERY_EASY
 			alliedType[] = list();
 			kiAttks[] = list();
@@ -179,54 +181,95 @@ aiDatum
 
 	proc
 
-		checkFlightDensity(){
-			set waitfor = FALSE;
-			set background = TRUE;
-
-			sleep(8 TICKS);
-
-			while(src && mobRef && length(mobRef.fCombat.hostileTargets) > 0 && RUNNING){
-
-				//while(mobRef && mobRef.kiAttk || mobRef && mobRef.checkTargeted(ENERGY) && mobRef.loc != mobRef.fCombat.lastTarget:loc){ sleep(world.tick_lag) }
-
-				if(LOCK_COMMANDS){
-					sleep(world.tick_lag);
-				}else if(mobRef && mobRef.fCombat.lastTarget && mobRef.loc == mobRef.fCombat.lastTarget:loc && mobRef.density && !mobRef.fCombat.lastTarget:density && !mobRef.flying && mobRef.currpl > 100 || mobRef && mobRef.fCombat.lastTarget && mobRef.loc == mobRef.fCombat.lastTarget:loc && !mobRef.density && mobRef.fCombat.lastTarget:density && !mobRef.flying){
-					alaparser.parse(mobRef, "fly", list());
-				}
-
-				sleep(world.tick_lag*5);
+		// Optimized AI state management
+		setState(new_state){
+			if(mobRef.ai_state != new_state){
+				mobRef.ai_state = new_state
+				scheduleAI()
 			}
 		}
 
-		checkTarget(){
-			set waitfor = FALSE;
-			set background = TRUE;
+		scheduleAI(){
+			if(!mobRef.ai_processing){
+				mobRef.ai_processing = TRUE
+				spawn() processAI()
+			}
+		}
 
-			sleep(5 TICKS)
+		processAI(){
+			set waitfor = FALSE
 
-			while(src && mobRef && length(mobRef.fCombat.hostileTargets) > 0 && RUNNING){
+			while(src && mobRef && RUNNING){
+				switch(mobRef.ai_state){
+					if("IDLE"){
+						// Light processing for idle state
+						if(length(mobRef.fCombat.hostileTargets) > 0){
+							setState("COMBAT")
+						} else {
+							sleep(30) // Long idle check
+						}
+					}
 
-				if(mobRef && mobRef.difficultyLevel > EASY && percent(mobRef.curreng,mobRef.getMaxEN()) >= 70 && !mobRef.powering && percent(mobRef.currpl,mobRef.getMaxPL()) < 60){alaparser.parse(mobRef, "power up", list());}
+					if("COMBAT"){
+						if(length(mobRef.fCombat.hostileTargets) == 0){
+							setState("IDLE")
+						} else {
+							processCombatAI()
+							sleep(5) // Short combat processing interval
+						}
+					}
 
-				if(mobRef && mobRef.powering && percent(mobRef.curreng,mobRef.getMaxEN()) <= 50 && mobRef.fCombat.lastTarget && mobRef.loc == mobRef.fCombat.lastTarget:loc){alaparser.parse(mobRef, "power stop", list());}
-
-				//while(mobRef && mobRef.kiAttk || mobRef && mobRef.checkTargeted(ENERGY) && mobRef.loc != mobRef.fCombat.lastTarget:loc){ sleep(world.tick_lag) }
-
-				if(LOCK_COMMANDS){
-					sleep(world.tick_lag);
-				}else if(mobRef && mobRef.fCombat.lastTarget && !mobRef.atkDat && mobRef.loc != mobRef.fCombat.lastTarget:loc && !mobRef.flying && mobRef.currpl > 100){
-					if(mobRef.density){alaparser.parse(mobRef, "fly", list());}
-					alaparser.parse(mobRef, "fly [mobRef.fCombat.lastTarget:name]", list());
+					if("RECOVERY"){
+						processRecovery()
+						sleep(10) // Medium recovery check
+					}
 				}
 
-				sleep(world.tick_lag);
+				// Exit if no longer running
+				if(!RUNNING) break
 			}
 
-			if(mobRef && !mobRef.fCombat.hostileTargets.len){
-				reset();
-				RUNNING = FALSE;
+			mobRef.ai_processing = FALSE
+		}
+
+		processCombatAI(){
+			// Power management
+			if(mobRef && mobRef.difficultyLevel > EASY && percent(mobRef.curreng,mobRef.getMaxEN()) >= 70 && !mobRef.powering && percent(mobRef.currpl,mobRef.getMaxPL()) < 60){
+				alaparser.parse(mobRef, "power up", list())
 			}
+
+			if(mobRef && mobRef.powering && percent(mobRef.curreng,mobRef.getMaxEN()) <= 50 && mobRef.fCombat.lastTarget && mobRef.loc == mobRef.fCombat.lastTarget:loc){
+				alaparser.parse(mobRef, "power stop", list())
+			}
+
+			// Movement and targeting
+			if(mobRef && mobRef.fCombat.lastTarget && !mobRef.atkDat && mobRef.loc != mobRef.fCombat.lastTarget:loc && !mobRef.flying && mobRef.currpl > 100){
+				if(mobRef.density){alaparser.parse(mobRef, "fly", list())}
+				alaparser.parse(mobRef, "fly [mobRef.fCombat.lastTarget:name]", list())
+			}
+
+			// Density management
+			if(mobRef && mobRef.fCombat.lastTarget && mobRef.loc == mobRef.fCombat.lastTarget:loc && mobRef.density && !mobRef.fCombat.lastTarget:density && !mobRef.flying && mobRef.currpl > 100){
+				alaparser.parse(mobRef, "fly", list())
+			}
+		}
+
+		processRecovery(){
+			// Handle recovery logic here if needed
+			if(mobRef.currpl >= mobRef.getMaxPL() && mobRef.curreng >= mobRef.getMaxEN()){
+				setState("IDLE")
+			}
+		}
+
+		// Legacy compatibility methods - now optimized
+		checkFlightDensity(){
+			// Now handled in processCombatAI()
+			return
+		}
+
+		checkTarget(){
+			// Now handled in processCombatAI() 
+			return
 		}
 
 		reset(relocate=TRUE){
