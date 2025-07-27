@@ -310,7 +310,7 @@ aiDatum
 					var/kiAttkx = pick(mobRef.kiAttks);
 					alaparser.parse(mobRef, "[kiAttkx] [mobRef.fCombat.lastTarget:name]", list());
 					while(mobRef.kiAttk && mobRef.kiAttk.chCount < mobRef.kiAttk.mnCh) { sleep(world.tick_lag); }
-					alaparser.parse(mobRef, "yell ARE YOU READY FOR THIS!?", list())
+					alaparser.parse(mobRef, "yell [pick("ARE YOU READY FOR THIS!?", "PREPARE YOURSELF!", "THIS IS IT!", "TAKE THIS!", "HERE'S MY FULL POWER!", "YOU CAN'T DODGE THIS!", "WITNESS MY STRENGTH!", "BEHOLD MY ULTIMATE ATTACK!")]", list())
 					sleep(rand(5,15));
 					alaparser.parse(mobRef, "[kiAttkx] [mobRef.fCombat.lastTarget:name]", list());
 					/* CHARGE OUR ATTACK? */
@@ -331,7 +331,7 @@ aiDatum
 					var/kiAttkx = pick(mobRef.kiAttks);
 					alaparser.parse(mobRef, "[kiAttkx] [mobRef.fCombat.lastTarget:name]", list());
 					while(mobRef.kiAttk && mobRef.kiAttk.chCount < mobRef.kiAttk.mnCh) { sleep(world.tick_lag); }
-					alaparser.parse(mobRef, "yell ARE YOU READY FOR THIS!?", list())
+					alaparser.parse(mobRef, "yell [pick("ARE YOU READY FOR THIS!?", "PREPARE YOURSELF!", "THIS IS IT!", "TAKE THIS!", "HERE'S MY FULL POWER!", "YOU CAN'T DODGE THIS!", "WITNESS MY STRENGTH!", "BEHOLD MY ULTIMATE ATTACK!")]", list())
 					sleep(rand(5,15));
 					alaparser.parse(mobRef, "[kiAttkx] [mobRef.fCombat.lastTarget:name]", list());
 					/* CHARGE OUR ATTACK? */
@@ -354,44 +354,69 @@ aiDatum
 					while(mobRef && mobRef.checkTargeted(ENERGY) && mobRef.loc != mobRef.fCombat.lastTarget:loc){ sleep(world.tick_lag) }
 
 					if(mobRef && mobRef.fCombat.lastTarget && mobRef.fCombat.lastTarget:unconscious && mobRef.difficultyLevel > EASY){
-						alaparser.parse(mobRef, "yell [pick("YOU MADE THIS TOO EASY!","LATER KID!")]", list())
+						alaparser.parse(mobRef, "yell [pick("YOU MADE THIS TOO EASY!","LATER KID!", "PATHETIC!", "IS THAT ALL YOU'VE GOT?", "WEAKLING!", "YOU'RE FINISHED!", "BETTER LUCK NEXT TIME!", "TOO SLOW!", "GAME OVER!")]", list())
 						alaparser.parse(mobRef, "snapneck [mobRef.fCombat.lastTarget:name]", list());
 					}else if(mobRef && mobRef.fCombat.lastTarget && (/Command/Technique/timeskip in mobRef.techniques) && a_get_dist(mobRef,mobRef.fCombat.lastTarget) <= 14 && a_get_dist(mobRef,mobRef.fCombat.lastTarget) >= 1){
+						if(decimal_prob(30)){
+							alaparser.parse(mobRef, "yell [pick("TIME TO SKIP!", "YOU WON'T SEE THIS COMING!", "DISAPPEARING ACT!", "CATCH ME IF YOU CAN!")]", list())
+						}
 						alaparser.parse(mobRef, "timeskip [mobRef.fCombat.lastTarget:name]", list());
 					}else if(mobRef && mobRef.fCombat.lastTarget && (/Command/Technique/elbow in mobRef.techniques) && a_get_dist(mobRef,mobRef.fCombat.lastTarget) <= 8 && a_get_dist(mobRef,mobRef.fCombat.lastTarget) >= 1){
 						alaparser.parse(mobRef, "elbow [mobRef.fCombat.lastTarget:name]", list());
-						alaparser.parse(mobRef, "yell HERE I COME!", list())
+						alaparser.parse(mobRef, "yell [pick("HERE I COME!", "INCOMING!", "GET READY!", "SURPRISE!", "FEEL THIS!", "BRACE YOURSELF!", "NO ESCAPE!")]", list())
 					}else if(mobRef && mobRef.fCombat.lastTarget && mobRef.loc == mobRef.fCombat.lastTarget:loc){
 						if(mobRef.density && mobRef.fCombat.lastTarget:density || !mobRef.density && !mobRef.fCombat.lastTarget:density){
 
 							if(mobRef && mobRef.fCombat.lastTarget && mobRef.fCombat.lastTarget:stunned){
 								if((locate(/Command/Technique/blast) in mobRef.techniques) && decimal_prob(25)){
+									if(decimal_prob(40)){
+										alaparser.parse(mobRef, "yell [pick("BLAST AWAY!", "BOOM!", "TAKE THIS BLAST!", "ENERGY BLAST!", "LIGHTS OUT!")]", list())
+									}
 									alaparser.parse(mobRef, "blast [mobRef.fCombat.lastTarget:name]", list());
 									while(mobRef.kiAttk){sleep(world.tick_lag)}
 								}else if((locate(/Command/Technique/drain) in mobRef.techniques) && decimal_prob(60)){
+									if(decimal_prob(35)){
+										alaparser.parse(mobRef, "yell [pick("YOUR ENERGY IS MINE!", "DRAINING YOU DRY!", "GIVE ME YOUR POWER!", "ENERGY DRAIN!", "FEELING WEAK YET?")]", list())
+									}
 									alaparser.parse(mobRef, "drain [mobRef.fCombat.lastTarget:name]", list());
 									while(mobRef.atkDat){sleep(world.tick_lag)}
 								}else if((locate(/Command/Technique/self_destruct) in mobRef.techniques) && decimal_prob(50) && percent(mobRef.currpl,mobRef.getMaxPL()) <= 30.00){
+									alaparser.parse(mobRef, "yell [pick("IF I'M GOING DOWN, YOU'RE COMING WITH ME!", "SELF DESTRUCT!", "WE ALL GO TOGETHER!", "BOOM TIME!", "TAKING YOU WITH ME!", "FINAL EXPLOSION!")]", list())
 									alaparser.parse(mobRef, "selfdestruct [mobRef.fCombat.lastTarget:name]", list());
 									while(mobRef.atkDat){sleep(world.tick_lag)}
 								}else if((locate(/Command/Technique/fury) in mobRef.techniques) && decimal_prob(50)){
+									if(decimal_prob(40)){
+										alaparser.parse(mobRef, "yell [pick("FURY UNLEASHED!", "FEEL MY RAGE!", "UNSTOPPABLE FURY!", "RAMPAGE TIME!", "FURY ATTACK!")]", list())
+									}
 									alaparser.parse(mobRef, "fury [mobRef.fCombat.lastTarget:name]", list());
 									while(mobRef.atkDat){sleep(world.tick_lag)}
 								}else if(!mobRef.fCombat.lastTarget:density && (locate(/Command/Technique/hammer) in mobRef.techniques) && decimal_prob(75) && !mobRef.fCombat.comboList["[mobRef.fCombat.lastTarget:ID]"]){
+									if(decimal_prob(30)){
+										alaparser.parse(mobRef, "yell [pick("HAMMER TIME!", "CRUSHING BLOW!", "SLAM DUNK!", "DOWN YOU GO!", "GROUND POUND!")]", list())
+									}
 									alaparser.parse(mobRef, "hammer [mobRef.fCombat.lastTarget:name]", list());
 									while(mobRef.atkDat){sleep(world.tick_lag)}
 								}else if((locate(/Command/Technique/siphon) in mobRef.techniques) && decimal_prob(60)){
+									if(decimal_prob(35)){
+										alaparser.parse(mobRef, "yell [pick("SIPHONING YOUR STRENGTH!", "YOUR POWER IS MINE!", "ENERGY TRANSFER!", "ABSORBING YOUR ENERGY!", "STEALING YOUR MIGHT!")]", list())
+									}
 									alaparser.parse(mobRef, "siphon [mobRef.fCombat.lastTarget:name]", list());
 									while(mobRef.atkDat){sleep(world.tick_lag)}
 								}
 							}
 
 							if(mobRef && mobRef.fCombat.lastTarget && mobRef.fCombat.lastTarget:atkDat && mobRef.fCombat.lastTarget:atkDat:type == /atkDatum/roundhouse){
+								if(decimal_prob(25)){
+									alaparser.parse(mobRef, "yell [pick("COUNTER ATTACK!", "NOT SO FAST!", "SWEEP THE LEG!", "DOWN YOU GO!", "TRIP UP!")]", list())
+								}
 								alaparser.parse(mobRef, "sweep [mobRef.fCombat.lastTarget:name]", list());
 								while(mobRef.atkDat){sleep(world.tick_lag)}
 							}
 
 							if(mobRef && mobRef.fCombat.lastTarget && mobRef.techniques.Find(/Command/Technique/spin_kick) && mobRef.fCombat.lastTarget:atkDat && mobRef.fCombat.lastTarget:atkDat:type == /atkDatum/sweep){
+								if(decimal_prob(25)){
+									alaparser.parse(mobRef, "yell [pick("SPIN KICK!", "SPINNING STRIKE!", "WHIRLWIND KICK!", "TORNADO KICK!", "SPIN COUNTER!")]", list())
+								}
 								alaparser.parse(mobRef, "spinkick [mobRef.fCombat.lastTarget:name]", list());
 								while(mobRef.atkDat){sleep(world.tick_lag)}
 							}
@@ -401,10 +426,14 @@ aiDatum
 									var/comboL[] = mobRef.fCombat.comboList["[mobRef.fCombat.lastTarget:ID]"]
 
 									if(!mobRef.shyouken && mobRef.techniques.Find(/Command/Technique/shyouken)){
+										if(decimal_prob(40)){
+											alaparser.parse(mobRef, "yell [pick("SHORYUKEN!", "RISING DRAGON!", "UPPER POWER!", "DRAGON FIST!", "SKYWARD STRIKE!")]", list())
+										}
 										alaparser.parse(mobRef, "shyouken", list());
 									}
 
 									if(mobRef.techniques.Find(/Command/Technique/Form/kaioken) && !(mobRef.form in list("Kaioken x2", "Kaioken x3", "Kaioken x4")) && mobRef.curreng > 60){
+										alaparser.parse(mobRef, "yell [pick("KAIOKEN!", "POWER MULTIPLIED!", "TIMES FOUR!", "MAXIMUM POWER!", "OVERLOAD!")]", list())
 										alaparser.parse(mobRef, "kaioken 4", list());
 									}
 
@@ -447,6 +476,9 @@ aiDatum
 								FAKING = TRUE;
 								fakeTime = world.time;
 								cFake = rand(2,fakeCount);
+								if(decimal_prob(20)){
+									alaparser.parse(mobRef, "yell [pick("FAKE OUT!", "GOTCHA!", "MIND GAMES!", "DISTRACTION!", "WHICH WAY?", "TRY TO FOLLOW THIS!", "CAN YOU KEEP UP?")]", list())
+								}
 								while(mobRef && mobRef.fCombat.lastTarget && FAKING){
 									if(world.time >= fakeTime){
 										alaparser.parse(mobRef, "[pick(mobRef.meleeAttks)] [mobRef.fCombat.lastTarget:name]", list());
@@ -459,6 +491,9 @@ aiDatum
 									sleep(world.tick_lag);
 								}
 							}else{
+								if(decimal_prob(15)){
+									alaparser.parse(mobRef, "yell [pick("ATTACK!", "TAKE THIS!", "COMBO TIME!", "HERE WE GO!", "FIGHT!", "BATTLE CRY!", "FOR GLORY!", "CHARGE!", "STRIKE!", "HIT!", "PUNCH!", "KICK!")]", list())
+								}
 								alaparser.parse(mobRef, "[pick(mobRef.meleeAttks)] [mobRef.fCombat.lastTarget:name]", list());
 							}
 						}else{
