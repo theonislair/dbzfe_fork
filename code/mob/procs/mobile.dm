@@ -1372,17 +1372,23 @@ mob
 
 		energyMessage(){
 			if(percent(curreng,getMaxEN()) <= 20){
-				send("{yYou feel dizzy...{x", src)
-				send("{y[name] feels dizzy...{x", _ohearers(0, src))
+				var/msg = pick("You feel dizzy...", "Your vision blurs...", "You struggle to stay standing...", "Exhaustion overwhelms you...", "Your legs feel like jelly...", "You're on the verge of collapse...", "Your body screams for rest...", "Everything feels heavy...")
+				var/othermsg = pick("[name] feels dizzy...", "[name]'s vision appears unfocused...", "[name] struggles to stay upright...", "[name] looks completely exhausted...", "[name]'s legs shake uncontrollably...", "[name] looks ready to collapse...", "[name] appears utterly drained...", "[name] sways from exhaustion...")
+				send("{y[msg]{x", src)
+				send("{y[othermsg]{x", _ohearers(0, src))
 				if(!resting && !sleeping) { _doDamage(-ret_percent(5,getMaxPL())) } // Added a check to not do damage if the player is resting or sleeping.
 			}
 			else if(percent(curreng,getMaxEN()) <= 30){
-				send("{yYou take a deep breath...{x", src)
-				send("{y[name] takes a deep breath...{x", _ohearers(0, src))
+				var/msg = pick("You take a deep breath...", "You breathe heavily...", "You gasp for air...", "You try to catch your breath...", "Your breathing becomes labored...", "You pant from exhaustion...", "You inhale deeply to recover...", "You wheeze slightly...")
+				var/othermsg = pick("[name] takes a deep breath...", "[name] breathes heavily...", "[name] gasps for air...", "[name] tries to catch their breath...", "[name]'s breathing becomes labored...", "[name] pants from exhaustion...", "[name] inhales deeply...", "[name] wheezes slightly...")
+				send("{y[msg]{x", src)
+				send("{y[othermsg]{x", _ohearers(0, src))
 			}
 			else if(percent(curreng,getMaxEN()) <= 50){
-				send("{yA drop of sweat rolls down your face...{x", src)
-				send("{yA drop of sweat rolls down [name]'s face...{x", _ohearers(0, src))
+				var/msg = pick("A drop of sweat rolls down your face...", "Sweat beads on your forehead...", "You wipe sweat from your brow...", "Perspiration dampens your clothes...", "You feel yourself getting tired...", "A light sheen of sweat covers you...", "Your heart rate increases...", "You start to feel the strain...", "Fatigue begins to set in...")
+				var/othermsg = pick("A drop of sweat rolls down [name]'s face...", "Sweat beads on [name]'s forehead...", "[name] wipes sweat from their brow...", "[name]'s clothes dampen with perspiration...", "[name] looks like they're getting tired...", "A light sheen of sweat covers [name]...", "[name]'s breathing quickens...", "[name] shows signs of strain...", "[name] appears to be tiring...")
+				send("{y[msg]{x", src)
+				send("{y[othermsg]{x", _ohearers(0, src))
 			}
 		}
 
