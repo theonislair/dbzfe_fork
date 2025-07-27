@@ -25,7 +25,7 @@ mob
 		arenaw = 0; // Total arena wins.
 		arenal = 0; // Total arena losses.
 		prompt = "<$p_energy> / <$currpl/$maxpl> $def_target" // Default prompt.
-		simultaneous = TRUE; // Are we in simultaneous combat or normal.
+		simultaneous = FALSE; // Are we in simultaneous combat or normal.
 		hasTail = FALSE; // Do we have a tail?
 		showDefense = TRUE; // Do we want to see defense tips?
 		frozen = FALSE; // Are we frozen or not?
@@ -1933,3 +1933,106 @@ mob
 		}
 
 		receive_item(obj/item/I, mob/giver) {}
+
+	Cross(atom/theAtom){
+		if(istype(theAtom,/mob)){
+			return TRUE;
+		}
+		else{
+			return ..();
+		}
+	}
+
+	Move(new_loc, new_dir, step_x=0, step_y=0, override=FALSE, moveMessage=TRUE)
+	{
+		if(kiAttk) cancelKi()
+
+		if(flying && !override){flying=NULL;lFlyT=NULL;}
+
+		if(resting && !override || sleeping && !override){return FALSE;}
+
+		if(!density){ emitSelf(src,ov_out(16,34,src)); }
+
+		if(src && src.loc && src.loc.contents && playersInRoom(src.loc.contents, src) && !density && moveMessage){
+			if(visible && !invisible) send("[raceColor(name)] flies [game.dir2text(new_dir,0)].", _ohearers(0, src))
+		}
+		else if(src && src.loc && src.loc.contents && playersInRoom(src.loc.contents, src) && loc && loc:tType == WATER && moveMessage){
+			if(visible && !invisible) send("[raceColor(name)] swims [game.dir2text(new_dir,0)].", _ohearers(0, src))
+		}
+		else if(src && src.loc && src.loc.contents && playersInRoom(src.loc.contents, src) && moveMessage){
+			if(visible && !invisible) send("[raceColor(name)] moves [game.dir2text(new_dir,0)].", _ohearers(0, src))
+		}
+
+		var nx = x
+		var ny = y
+
+		if(new_dir & EAST){
+			nx ++
+		}
+		else if(new_dir & WEST){
+			nx --
+		}
+		if(new_dir & NORTH){
+			ny ++
+		}
+		else if(new_dir & SOUTH){
+			ny --
+		}
+
+		if(loc && loc.loc && isplanet(loc.loc)){
+			if(nx > loc.loc:getMaxX()){
+				nx = (loc.loc:x + x - loc.loc:getMaxX())
+			}
+			else if(nx < loc.loc:x){
+				nx = (loc.loc:x - x + loc.loc:getMaxX())
+			}
+
+			if(ny > loc.loc:getMaxY()){
+				ny = (loc.loc:y + y - loc.loc:getMaxY())
+			}
+			else if(ny < loc.loc:y){
+				ny = (loc.loc:y - y + loc.loc:getMaxY())
+			}
+		}else{
+			if(nx > world.maxx){
+				nx -= world.maxx
+			}
+			else if(nx < 1){
+				nx += world.maxx
+			}
+			if(ny > world.maxy){
+				ny -= world.maxy
+			}
+			else if(ny < 1){
+				ny += world.maxy
+			}
+		}
+
+		..(locate(nx, ny, z), new_dir)
+
+		if(src && src.loc && src.loc.contents && playersInRoom(src.loc.contents, src) && !density && moveMessage){
+			if(visible && !invisible) {
+				send("[raceColor(name)] flies in from the [game.dir2text(new_dir,1)].", _ohearers(0, src))
+			}
+		}
+		else if(src && src.loc && src.loc.contents && playersInRoom(src.loc.contents, src) && loc && loc:tType == WATER && moveMessage){
+			if(visible && !invisible) {
+				send("[raceColor(name)] swims in from the [game.dir2text(new_dir,1)].", _ohearers(0, src))
+			}
+		}
+		else if(src && src.loc && src.loc.contents && playersInRoom(src.loc.contents, src) && moveMessage){
+			if(visible && !invisible) {
+				send("[raceColor(name)] moves in from the [game.dir2text(new_dir,1)].", _ohearers(0, src))
+			}
+		}
+
+		// Event Entered
+		if(src.invisible == FALSE) {
+			for(var/mob/m in loc){
+				if(isnpc(m)) {
+					m.event_entered(src);
+				}
+			}
+		}
+
+	}
