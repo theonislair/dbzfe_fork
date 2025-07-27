@@ -25,7 +25,7 @@ mob
 		arenaw = 0; // Total arena wins.
 		arenal = 0; // Total arena losses.
 		prompt = "<$p_energy> / <$currpl/$maxpl> $def_target" // Default prompt.
-		simultaneous = TRUE; // Are we in simultaneous combat or normal.
+		simultaneous = FALSE; // Are we in simultaneous combat or normal.
 		hasTail = FALSE; // Do we have a tail?
 		showDefense = TRUE; // Do we want to see defense tips?
 		frozen = FALSE; // Are we frozen or not?
@@ -126,9 +126,6 @@ mob
 			commandList[] = list();
 			updateCommands = TRUE;
 
-		state_processing = FALSE
-		state_refresh_time = 0
-
 	proc
 		updateCommands(){
 			commandList = list();
@@ -148,117 +145,6 @@ mob
 					if(immLevel >= x.immReq){
 						commandList += list("[x.type]" = x);
 					}
-				}
-			}
-
-			updateCommands = TRUE;
-		}
-
-		// Optimized state management system
-		startStateProcessing(state_name, refresh_rate = 35){
-			if(state_processing) return
-
-			state_processing = TRUE
-			state_refresh_time = world.time + refresh_rate
-
-			spawn() processPlayerState(state_name, refresh_rate)
-		}
-
-		processPlayerState(state_name, refresh_rate){
-			set waitfor = FALSE
-
-			while(src && getStateValue(state_name)){
-				// Check exit conditions first
-				if(shouldExitState(state_name)) {
-					setStateValue(state_name, FALSE)
-					break
-				}
-
-				// Process state effects
-				if(world.time >= state_refresh_time){
-					processStateEffects(state_name)
-					state_refresh_time = world.time + refresh_rate
-				}
-
-				// Smart sleep - sleep until next refresh or longer for idle states
-				var/sleep_time = max(10, state_refresh_time - world.time)
-				if(state_name == "sleeping" && curreng >= getMaxEN() * 0.9)
-					sleep_time = sleep_time * 2 // Sleep longer when nearly full
-
-				sleep(sleep_time)
-			}
-
-			// Handle state exit
-			handleStateExit(state_name)
-			state_processing = FALSE
-		}
-
-		getStateValue(state_name){
-			switch(state_name){
-				if("sleeping") return sleeping
-				if("resting") return resting
-				if("bursting") return bursting
-				if("barrier") return barrier
-				if("unconscious") return unconscious
-			}
-			return FALSE
-		}
-
-		setStateValue(state_name, value){
-			switch(state_name){
-				if("sleeping") sleeping = value
-				if("resting") resting = value
-				if("bursting") bursting = value
-				if("barrier") barrier = value
-				if("unconscious") unconscious = value
-			}
-		}
-
-		shouldExitState(state_name){
-			switch(state_name){
-				if("sleeping") return (curreng >= getMaxEN() && currpl >= getMaxPL())
-				if("resting") return (curreng >= getMaxEN() && currpl >= getMaxPL())
-				if("bursting") return unconscious
-				if("barrier") return unconscious
-				if("unconscious") return (currpl > 1)
-			}
-			return FALSE
-		}
-
-		processStateEffects(state_name){
-			switch(state_name){
-				if("sleeping"){
-					_doEnergy(ret_percent(6,getMaxEN()))
-					currpl = clamp(currpl + ret_percent(5,getMaxPL()), MIN_PL, getMaxPL())
-				}
-				if("resting"){
-					_doEnergy(ret_percent(4,getMaxEN()))
-					currpl = clamp(currpl + ret_percent(3,getMaxPL()), MIN_PL, getMaxPL())
-				}
-				if("bursting"){
-					_doEnergy(-ret_percent(3,getMaxEN()))
-				}
-				if("barrier"){
-					_doEnergy(-ret_percent(5,getMaxEN()))
-				}
-			}
-		}
-
-		handleStateExit(state_name){
-			switch(state_name){
-				if("sleeping"){
-					if(!resting) {
-						send("You wake up!", src)
-						send("[raceColor(name)] wakes up!", _ohearers(0, src))
-					}
-				}
-				if("resting"){
-					send("You stop resting and stand up.", src)
-					send("[raceColor(name)] stops resting and stands up.", _ohearers(0, src))
-				}
-				if("bursting"){
-					send("You stop bursting.", src)
-					send("[raceColor(name)] stops bursting.", _ohearers(0, src))
 				}
 			}
 		}
@@ -1106,7 +992,7 @@ mob
 			// Cache commonly used values for performance
 			var/others = _ohearers(0,src)
 			var/sex_he = determineSex(1)
-			var/sex_him = determineSex(2)
+			var/sex_him = determineSex(2) 
 			var/sex_they = determineSex(3)
 
 			// Determine power level tier and messages
@@ -1933,3 +1819,106 @@ mob
 		}
 
 		receive_item(obj/item/I, mob/giver) {}
+
+	Cross(atom/theAtom){
+		if(istype(theAtom,/mob)){
+			return TRUE;
+		}
+		else{
+			return ..();
+		}
+	}
+
+	Move(new_loc, new_dir, step_x=0, step_y=0, override=FALSE, moveMessage=TRUE)
+	{
+		if(kiAttk) cancelKi()
+
+		if(flying && !override){flying=NULL;lFlyT=NULL;}
+
+		if(resting && !override || sleeping && !override){return FALSE;}
+
+		if(!density){ emitSelf(src,ov_out(16,34,src)); }
+
+		if(src && src.loc && src.loc.contents && playersInRoom(src.loc.contents, src) && !density && moveMessage){
+			if(visible && !invisible) send("[raceColor(name)] flies [game.dir2text(new_dir,0)].", _ohearers(0, src))
+		}
+		else if(src && src.loc && src.loc.contents && playersInRoom(src.loc.contents, src) && loc && loc:tType == WATER && moveMessage){
+			if(visible && !invisible) send("[raceColor(name)] swims [game.dir2text(new_dir,0)].", _ohearers(0, src))
+		}
+		else if(src && src.loc && src.loc.contents && playersInRoom(src.loc.contents, src) && moveMessage){
+			if(visible && !invisible) send("[raceColor(name)] moves [game.dir2text(new_dir,0)].", _ohearers(0, src))
+		}
+
+		var nx = x
+		var ny = y
+
+		if(new_dir & EAST){
+			nx ++
+		}
+		else if(new_dir & WEST){
+			nx --
+		}
+		if(new_dir & NORTH){
+			ny ++
+		}
+		else if(new_dir & SOUTH){
+			ny --
+		}
+
+		if(loc && loc.loc && isplanet(loc.loc)){
+			if(nx > loc.loc:getMaxX()){
+				nx = (loc.loc:x + x - loc.loc:getMaxX())
+			}
+			else if(nx < loc.loc:x){
+				nx = (loc.loc:x - x + loc.loc:getMaxX())
+			}
+
+			if(ny > loc.loc:getMaxY()){
+				ny = (loc.loc:y + y - loc.loc:getMaxY())
+			}
+			else if(ny < loc.loc:y){
+				ny = (loc.loc:y - y + loc.loc:getMaxY())
+			}
+		}else{
+			if(nx > world.maxx){
+				nx -= world.maxx
+			}
+			else if(nx < 1){
+				nx += world.maxx
+			}
+			if(ny > world.maxy){
+				ny -= world.maxy
+			}
+			else if(ny < 1){
+				ny += world.maxy
+			}
+		}
+
+		..(locate(nx, ny, z), new_dir)
+
+		if(src && src.loc && src.loc.contents && playersInRoom(src.loc.contents, src) && !density && moveMessage){
+			if(visible && !invisible) {
+				send("[raceColor(name)] flies in from the [game.dir2text(new_dir,1)].", _ohearers(0, src))
+			}
+		}
+		else if(src && src.loc && src.loc.contents && playersInRoom(src.loc.contents, src) && loc && loc:tType == WATER && moveMessage){
+			if(visible && !invisible) {
+				send("[raceColor(name)] swims in from the [game.dir2text(new_dir,1)].", _ohearers(0, src))
+			}
+		}
+		else if(src && src.loc && src.loc.contents && playersInRoom(src.loc.contents, src) && moveMessage){
+			if(visible && !invisible) {
+				send("[raceColor(name)] moves in from the [game.dir2text(new_dir,1)].", _ohearers(0, src))
+			}
+		}
+
+		// Event Entered
+		if(src.invisible == FALSE) {
+			for(var/mob/m in loc){
+				if(isnpc(m)) {
+					m.event_entered(src);
+				}
+			}
+		}
+
+	}

@@ -98,9 +98,7 @@ mob
 			defenceChance = 11
 			defenceKiChance = 11
 			fakeChance = 5
-			ai_state = "IDLE"
-			ai_processing = FALSE
-			last_combat_check = 0
+			//failedAttacks = 0;// After so many failed attacks lets for the lulz fake at 3 seconds...because why not.
 			difficultyLevel = VERY_EASY
 			alliedType[] = list();
 			kiAttks[] = list();
@@ -181,95 +179,54 @@ aiDatum
 
 	proc
 
-		// Optimized AI state management
-		setState(new_state){
-			if(mobRef.ai_state != new_state){
-				mobRef.ai_state = new_state
-				scheduleAI()
-			}
-		}
+		checkFlightDensity(){
+			set waitfor = FALSE;
+			set background = TRUE;
 
-		scheduleAI(){
-			if(!mobRef.ai_processing){
-				mobRef.ai_processing = TRUE
-				spawn() processAI()
-			}
-		}
+			sleep(8 TICKS);
 
-		processAI(){
-			set waitfor = FALSE
+			while(src && mobRef && length(mobRef.fCombat.hostileTargets) > 0 && RUNNING){
 
-			while(src && mobRef && RUNNING){
-				switch(mobRef.ai_state){
-					if("IDLE"){
-						// Light processing for idle state
-						if(length(mobRef.fCombat.hostileTargets) > 0){
-							setState("COMBAT")
-						} else {
-							sleep(30) // Long idle check
-						}
-					}
+				//while(mobRef && mobRef.kiAttk || mobRef && mobRef.checkTargeted(ENERGY) && mobRef.loc != mobRef.fCombat.lastTarget:loc){ sleep(world.tick_lag) }
 
-					if("COMBAT"){
-						if(length(mobRef.fCombat.hostileTargets) == 0){
-							setState("IDLE")
-						} else {
-							processCombatAI()
-							sleep(5) // Short combat processing interval
-						}
-					}
-
-					if("RECOVERY"){
-						processRecovery()
-						sleep(10) // Medium recovery check
-					}
+				if(LOCK_COMMANDS){
+					sleep(world.tick_lag);
+				}else if(mobRef && mobRef.fCombat.lastTarget && mobRef.loc == mobRef.fCombat.lastTarget:loc && mobRef.density && !mobRef.fCombat.lastTarget:density && !mobRef.flying && mobRef.currpl > 100 || mobRef && mobRef.fCombat.lastTarget && mobRef.loc == mobRef.fCombat.lastTarget:loc && !mobRef.density && mobRef.fCombat.lastTarget:density && !mobRef.flying){
+					alaparser.parse(mobRef, "fly", list());
 				}
 
-				// Exit if no longer running
-				if(!RUNNING) break
+				sleep(world.tick_lag*5);
 			}
-
-			mobRef.ai_processing = FALSE
-		}
-
-		processCombatAI(){
-			// Power management
-			if(mobRef && mobRef.difficultyLevel > EASY && percent(mobRef.curreng,mobRef.getMaxEN()) >= 70 && !mobRef.powering && percent(mobRef.currpl,mobRef.getMaxPL()) < 60){
-				alaparser.parse(mobRef, "power up", list())
-			}
-
-			if(mobRef && mobRef.powering && percent(mobRef.curreng,mobRef.getMaxEN()) <= 50 && mobRef.fCombat.lastTarget && mobRef.loc == mobRef.fCombat.lastTarget:loc){
-				alaparser.parse(mobRef, "power stop", list())
-			}
-
-			// Movement and targeting
-			if(mobRef && mobRef.fCombat.lastTarget && !mobRef.atkDat && mobRef.loc != mobRef.fCombat.lastTarget:loc && !mobRef.flying && mobRef.currpl > 100){
-				if(mobRef.density){alaparser.parse(mobRef, "fly", list())}
-				alaparser.parse(mobRef, "fly [mobRef.fCombat.lastTarget:name]", list())
-			}
-
-			// Density management
-			if(mobRef && mobRef.fCombat.lastTarget && mobRef.loc == mobRef.fCombat.lastTarget:loc && mobRef.density && !mobRef.fCombat.lastTarget:density && !mobRef.flying && mobRef.currpl > 100){
-				alaparser.parse(mobRef, "fly", list())
-			}
-		}
-
-		processRecovery(){
-			// Handle recovery logic here if needed
-			if(mobRef.currpl >= mobRef.getMaxPL() && mobRef.curreng >= mobRef.getMaxEN()){
-				setState("IDLE")
-			}
-		}
-
-		// Legacy compatibility methods - now optimized
-		checkFlightDensity(){
-			// Now handled in processCombatAI()
-			return
 		}
 
 		checkTarget(){
-			// Now handled in processCombatAI() 
-			return
+			set waitfor = FALSE;
+			set background = TRUE;
+
+			sleep(5 TICKS)
+
+			while(src && mobRef && length(mobRef.fCombat.hostileTargets) > 0 && RUNNING){
+
+				if(mobRef && mobRef.difficultyLevel > EASY && percent(mobRef.curreng,mobRef.getMaxEN()) >= 70 && !mobRef.powering && percent(mobRef.currpl,mobRef.getMaxPL()) < 60){alaparser.parse(mobRef, "power up", list());}
+
+				if(mobRef && mobRef.powering && percent(mobRef.curreng,mobRef.getMaxEN()) <= 50 && mobRef.fCombat.lastTarget && mobRef.loc == mobRef.fCombat.lastTarget:loc){alaparser.parse(mobRef, "power stop", list());}
+
+				//while(mobRef && mobRef.kiAttk || mobRef && mobRef.checkTargeted(ENERGY) && mobRef.loc != mobRef.fCombat.lastTarget:loc){ sleep(world.tick_lag) }
+
+				if(LOCK_COMMANDS){
+					sleep(world.tick_lag);
+				}else if(mobRef && mobRef.fCombat.lastTarget && !mobRef.atkDat && mobRef.loc != mobRef.fCombat.lastTarget:loc && !mobRef.flying && mobRef.currpl > 100){
+					if(mobRef.density){alaparser.parse(mobRef, "fly", list());}
+					alaparser.parse(mobRef, "fly [mobRef.fCombat.lastTarget:name]", list());
+				}
+
+				sleep(world.tick_lag);
+			}
+
+			if(mobRef && !mobRef.fCombat.hostileTargets.len){
+				reset();
+				RUNNING = FALSE;
+			}
 		}
 
 		reset(relocate=TRUE){
