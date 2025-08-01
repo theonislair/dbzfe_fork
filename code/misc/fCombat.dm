@@ -148,10 +148,35 @@ fCombat
 		damageMessage(mob/_target, _damage, _attack){
 			var/dmgMSG = dmgName(_target,_damage);
 
-			if(mobRef) send("{B*{x{B Your [_attack] {x[dmgMSG] [_target.raceColor(_target.name)]{B!{x {G={x{C\[{x{W[commafy(_damage)]{x{C\]{x{G={x",mobRef);
-			if(_target) send("{R* [mobRef:name]'s [_attack] {x[dmgMSG] {Ryou!{x {G={x{C\[{x{W[commafy(_damage)]{x{C\]{x{G={x",_target,TRUE);
-			if(mobRef && _target) send("{W*{x [mobRef:raceColor(mobRef:name)]'s [_attack] [dmgMSG] [_target.raceColor(_target.name)]! {G={x{C\[{x{W[commafy(_damage)]{x{C\]{x{G={x",a_oview_extra(0,_target,mobRef));
-			if(mobRef && _target && mobRef:loc != _target.loc){ send("{W*{x [mobRef:raceColor(mobRef:name)]'s [_attack] [dmgMSG] [_target.raceColor(_target.name)]! {G={x{C\[{x{W[commafy(_damage)]{x{C\]{x{G={x",_ohearers(0,mobRef)); }
+			// Send to attacker
+			if(mobRef) {
+				var/formattedDmg = mobRef:shortNUM ? short_num(_damage) : commafy(_damage)
+				send("{B*{x{B Your [_attack] {x[dmgMSG] [_target.raceColor(_target.name)]{B!{x {G={x{C\[{x{W[formattedDmg]{x{C\]{x{G={x", mobRef)
+			}
+
+			// Send to victim
+			if(_target) {
+				var/formattedDmg = _target.shortNUM ? short_num(_damage) : commafy(_damage)
+				send("{R* [mobRef:name]'s [_attack] {x[dmgMSG] {Ryou!{x {G={x{C\[{x{W[formattedDmg]{x{C\]{x{G={x", _target, TRUE)
+			}
+
+			// Send to observers in same location (excluding attacker and victim)
+			if(mobRef && _target) {
+				var/list/observers = a_oview_extra(0, _target, mobRef)
+				for(var/mob/observer in observers) {
+					var/formattedDmg = observer.shortNUM ? short_num(_damage) : commafy(_damage)
+					send("{W*{x [mobRef:raceColor(mobRef:name)]'s [_attack] [dmgMSG] [_target.raceColor(_target.name)]! {G={x{C\[{x{W[formattedDmg]{x{C\]{x{G={x", observer)
+				}
+			}
+
+			// Send to hearers of attacker in different location
+			if(mobRef && _target && mobRef:loc != _target.loc) {
+				var/list/hearers = _ohearers(0, mobRef)
+				for(var/mob/hearer in hearers) {
+					var/formattedDmg = hearer.shortNUM ? short_num(_damage) : commafy(_damage)
+					send("{W*{x [mobRef:raceColor(mobRef:name)]'s [_attack] [dmgMSG] [_target.raceColor(_target.name)]! {G={x{C\[{x{W[formattedDmg]{x{C\]{x{G={x", hearer)
+				}
+			}
 		}
 
 		checkUIAttack(mob/attacker, mob/defender){
