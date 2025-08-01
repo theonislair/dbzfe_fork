@@ -29,7 +29,7 @@ DBZFE
 		mobiles[] = list();
 		aggroMobs[] = list();
 		teleporters[] = list();
-		teachList[] = list(); // Save list of NPCS that teach a given skill 
+		teachList[] = list(); // Save list of NPCS that teach a given skill
 		Settings/settings = new();
 
 		list/meleeTargets[] = list();
@@ -184,7 +184,7 @@ DBZFE
 							itemPrefixes += list(i.type = i.PREFIX);
 							itemNames += list(i.type = i.DISPLAY);
 							itemTypes += list(rStrip_Escapes(i.DISPLAY) = i.type);
-							itemDB += list(i.DISPLAY = "[i.DISPLAY][i.DESC ? "\n[i.DESC]" : ""]\nSTA: [ncheck(i.BONUS_STA)]\nKI: [ncheck(i.BONUS_KI)]\nSTRENGTH: [ncheck(i.BONUS_STR)]\nARMOR: [ncheck(i.BONUS_ARM)]\nMAGIC FIND: [ncheck(i.BONUS_MF)]\nSLOT: [uppertext(_getName(i.SLOT))]\nWEIGHT: {D[i.WEIGHT] kgs.{x\nBUY PRICE: [i.PRICE]\nDROP CHANCE: [i.DROP_CHANCE]%\nITEM TAGS: [i.itemTags()]");
+							itemDB += list(i.DISPLAY = "[i.DISPLAY][i.DESC ? "\n{C[i.DESC]{x" : ""]\n\n{Y===== {W\[ COMBAT STATS ]{x {Y===={x\n {GSta:{x [ncheck(i.BONUS_STA)]\n {CKi:{x [ncheck(i.BONUS_KI)]\n {RStr:{x [ncheck(i.BONUS_STR)]\n {BArmor:{x [ncheck(i.BONUS_ARM)]\n {YMagic Find:{x [ncheck(i.BONUS_MF)]\n\n{Y====== {W\[ ITEM INFO ]{x {Y======{x\n {MSlot:{x [uppertext(_getName(i.SLOT))]\n {DWeight:{x [i.WEIGHT] kg[i.WEIGHT == 1 ? "" : "s"]\n {GPrice:{x {Y[commafy(i.PRICE)]{x Zenni\n {CDrop Rate:{x [i.DROP_CHANCE]%\n {YTags:{x [i.itemTags()]\n{Y==========================={x");
 						}
 					}
 

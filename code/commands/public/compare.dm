@@ -15,23 +15,20 @@ proc
 		var/obj/item/compare = m.equipment[SLOT];
 
 		if(compare){
-			compBuffer += "[i.DISPLAY] vs [compare.DISPLAY]\n"
-			if(i.DESC) { compBuffer += "{m--------{x\n";compBuffer+="[i.DESC]\n";compBuffer += "{m--------{x\n" }
-			compBuffer += "STA: [ncheck(i.BONUS_STA,999,m,TRUE)] [vsCompare(i.BONUS_STA,compare.BONUS_STA)] [ncheck(compare.BONUS_STA,999,m,TRUE)]\n"
-			compBuffer += "KI: [ncheck(i.BONUS_KI,999,m,TRUE)] [vsCompare(i.BONUS_KI,compare.BONUS_KI)] [ncheck(compare.BONUS_KI,999,m,TRUE)]\n"
-			compBuffer += "STRENGTH: [ncheck(i.BONUS_STR,999,m,TRUE)] [vsCompare(i.BONUS_STR,compare.BONUS_STR)] [ncheck(compare.BONUS_STR,999,m,TRUE)]\n"
-			compBuffer += "ARMOR: [ncheck(i.BONUS_ARM,999,m,TRUE)] [vsCompare(i.BONUS_ARM,compare.BONUS_ARM)] [ncheck(compare.BONUS_ARM,999,m,TRUE)]\n"
-			compBuffer += "MAGIC FIND: [ncheck(i.BONUS_MF,999,m,TRUE)] [vsCompare(i.BONUS_MF,compare.BONUS_MF)] [ncheck(compare.BONUS_MF,999,m,TRUE)]\n"
-			compBuffer += "WEIGHT: {D[i.WEIGHT] kgs.{x [vsCompare(i.WEIGHT,compare.WEIGHT)] {D[compare.WEIGHT] kgs.{x\n"
+			compBuffer += "{Y=== {WCOMPARE{x {Y==={x\n"
+			compBuffer += "{C[i.DISPLAY]{x{W vs {C[compare.DISPLAY]{x\n"
+			if(i.DESC) { compBuffer += "{C[i.DESC]{x\n" }
+			compBuffer += "{GSta:{x [ncheck(i.BONUS_STA,999,m,TRUE)] [vsCompare(i.BONUS_STA,compare.BONUS_STA)] [ncheck(compare.BONUS_STA,999,m,TRUE)] | {CKi:{x [ncheck(i.BONUS_KI,999,m,TRUE)] [vsCompare(i.BONUS_KI,compare.BONUS_KI)] [ncheck(compare.BONUS_KI,999,m,TRUE)]\n"
+			compBuffer += "{RStr:{x [ncheck(i.BONUS_STR,999,m,TRUE)] [vsCompare(i.BONUS_STR,compare.BONUS_STR)] [ncheck(compare.BONUS_STR,999,m,TRUE)] | {BArmor:{x [ncheck(i.BONUS_ARM,999,m,TRUE)] [vsCompare(i.BONUS_ARM,compare.BONUS_ARM)] [ncheck(compare.BONUS_ARM,999,m,TRUE)]\n"
+			compBuffer += "{YMF:{x [ncheck(i.BONUS_MF,999,m,TRUE)] [vsCompare(i.BONUS_MF,compare.BONUS_MF)] [ncheck(compare.BONUS_MF,999,m,TRUE)] | {DWeight:{x [i.WEIGHT][vsCompare(i.WEIGHT,compare.WEIGHT)][compare.WEIGHT]kg\n"
+			compBuffer += "{GPrice:{x {Y[commafy(i.PRICE)]{x vs {Y[commafy(compare.PRICE)]{x Zenni"
 		}else{
-			compBuffer += "[i.DISPLAY] vs nothing\n"
-			if(i.DESC) { compBuffer += "{m--------{x\n";compBuffer+="[i.DESC]\n";compBuffer += "{m--------{x\n" }
-			compBuffer += "STA: [ncheck(i.BONUS_STA,999,m,TRUE)]\n"
-			compBuffer += "KI: [ncheck(i.BONUS_KI,999,m,TRUE)]\n"
-			compBuffer += "STRENGTH: [ncheck(i.BONUS_STR,999,m,TRUE)]\n"
-			compBuffer += "ARMOR: [ncheck(i.BONUS_ARM,999,m,TRUE)]\n"
-			compBuffer += "MAGIC FIND: [ncheck(i.BONUS_MF,999,m,TRUE)]\n"
-			compBuffer += "WEIGHT: {D[i.WEIGHT] kgs.{x\n"
+			compBuffer += "{Y=== {WCOMPARE{x {Y==={x\n"
+			compBuffer += "{C[i.DISPLAY]{x {W vs {D(nothing){x\n"
+			if(i.DESC) { compBuffer += "{C[i.DESC]{x\n" }
+			compBuffer += "{GSta:{x [ncheck(i.BONUS_STA,999,m,TRUE)] | {CKi:{x [ncheck(i.BONUS_KI,999,m,TRUE)] | {RStr:{x [ncheck(i.BONUS_STR,999,m,TRUE)]\n"
+			compBuffer += "{BArmor:{x [ncheck(i.BONUS_ARM,999,m,TRUE)] | {YMF:{x [ncheck(i.BONUS_MF,999,m,TRUE)] | {DWeight:{x [i.WEIGHT]kg\n"
+			compBuffer += "{GPrice:{x {Y[commafy(i.PRICE)]{x Zenni"
 		}
 
 		return compBuffer;
