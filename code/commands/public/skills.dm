@@ -18,14 +18,20 @@ Command/Public
 				var/level = skillMasteryGetLevel(exp)
 				var/level_name = skillMasteryGetLevelName(level)
 				var/color = skillMasteryGetLevelColor(level)
-				if(user.techniques.Find(C.type)){
-					if(game.settings.skillMasteryEnabled)
-						skill_list.Add("{c[C.name]{x ([color][level_name]{x)")
-					else
-						skill_list.Add("{c[C.name]{x")
-				}
-				else{
-					skill_list.Add("{D[C.name]{x")
+
+				if(length(C.name) > 0){
+					if(user.techniques.Find(C.type)){
+						if(game.settings.skillMasteryEnabled)
+							skill_list.Add("{c[C.name]{x <al18>([color][level_name]{x)</a>")
+						else
+							skill_list.Add("{c[C.name]{x")
+					}
+					else{
+						if(game.settings.skillMasteryEnabled)
+							skill_list.Add("{D[C.name]{x <al9>({YN/A{x)</a>")
+						else
+							skill_list.Add("{D[C.name]{x")
+					}
 				}
 			}
 

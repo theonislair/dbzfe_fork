@@ -75,7 +75,7 @@ fCombat
 		comboList[] = list()
 		comboCount[] = list()
 		BROKEN_DEFENSE = FALSE;
-
+		comboTechniquesActive[] = list() // Track active combo techniques to prevent cooldowns
 
 		//NPA Variables//
 		groupedTypes[] = list()
@@ -190,6 +190,30 @@ fCombat
 				}
 			}
 			return FALSE;
+		}
+
+		isPartOfCombo(mob/target, Command/Technique/technique){
+			if("[target.ID]" in comboList){
+				var/list/comboL = comboList["[target.ID]"]
+				if(comboCount["[target.ID]"] <= comboL.len){
+					if(comboL[comboCount["[target.ID]"]] == technique.comboName){
+						return TRUE;
+					}
+				}
+			}
+			return FALSE;
+		}
+
+		setComboTechniqueActive(mob/target, Command/Technique/technique){
+			comboTechniquesActive["[mobRef:name]-[target.ID]-[technique.internal_name]"] = TRUE
+		}
+
+		clearComboTechniqueActive(mob/target, Command/Technique/technique){
+			comboTechniquesActive.Remove("[mobRef:name]-[target.ID]-[technique.internal_name]")
+		}
+
+		isComboTechniqueActive(mob/user, mob/target, technique_name){
+			return comboTechniquesActive.Find("[user.name]-[target.ID]-[technique_name]")
 		}
 
 		checkBreakDefense(mob/user, mob/target, damage=0, attack=NULL){

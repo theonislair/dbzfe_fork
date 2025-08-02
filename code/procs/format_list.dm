@@ -26,5 +26,5 @@ proc
 			}
 		}
 
-		return text
+		return format_text(text)
 	}

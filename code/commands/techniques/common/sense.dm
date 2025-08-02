@@ -35,7 +35,7 @@ Command/Technique
 					send("You do not have a power level sensing device equipped.", user)
 					return
 				}
-					
+
 				if(lowertext(argument) == "on") {
 					user.sensePL = TRUE
 					send(msg_on, user)
@@ -103,7 +103,7 @@ Command/Technique
 				for(var/mob/m in user.zMobs()){
 					if(a_get_dir(user,m) in argument){
 						if(!m.canSense(user)){ continue; }
-						buffer += format_text("[user.enCheck(m,TRUE)][user.checkSkill(m,TRUE)]<al26>[m.raceColor(m.name)]</a><al16>{D[uppertext(game.dir2text(a_get_dir(user,m)))]{x</a><al17>{D[coord(m:x,m:loc.loc:getMaxX())]{x.{D[coord(m:y,m:loc.loc:getMaxY())]{x</a><al32>([formatSensePower(user, m)])</a>\n");
+						buffer += format_text("[user.enCheck(m,TRUE)][user.checkSkill(m,TRUE)]<al26>[m.raceColor(m.name)]</a><al16>{D[uppertext(game.dir2text(a_get_dir(user,m)))]{x</a><al17>{D[coord(m:x,m:loc.loc:getMaxX())]{x.{D[coord(m:y,m:loc.loc:getMaxY())]{x</a><al28>([formatSensePower(user, m)])</a>\n");
 						c++;
 					}
 				}
@@ -126,7 +126,7 @@ Command/Technique
 
 				for(var/mob/m in user.zMobs()){
 					if(!m.canSense(user)){ continue; }
-					buffer += format_text("[user.enCheck(m,TRUE)][user.checkSkill(m,TRUE)]<al26>[m.raceColor(m.name)]</a><al16>{D[uppertext(game.dir2text(a_get_dir(user,m)))]{x</a><al17>{D[coord(m:x,m:loc.loc:getMaxX())]{x.{D[coord(m:y,m:loc.loc:getMaxY())]{x</a><al32>([formatSensePower(user, m)])</a>\n");
+					buffer += format_text("[user.enCheck(m,TRUE)][user.checkSkill(m,TRUE)]<al26>[m.raceColor(m.name)]</a><al16>{D[uppertext(game.dir2text(a_get_dir(user,m)))]{x</a><al17>{D[coord(m:x,m:loc.loc:getMaxX())]{x.{D[coord(m:y,m:loc.loc:getMaxY())]{x</a><al28>([formatSensePower(user, m)])</a>\n");
 					c++;
 				}
 

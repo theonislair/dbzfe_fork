@@ -135,6 +135,17 @@ DBZFE
 		}
 
 		addCooldown(name,skill,time){
+			// Check if this is a combo technique - if so, don't add cooldown
+			for(var/mob/Player/player in players){
+				if(player.name == name && player.fCombat){
+					for(var/key in player.fCombat.comboTechniquesActive){
+						if(findtext(key, "[name]-") == 1 && findtext(key, "-[skill]")){
+							return TRUE; // Pretend we added cooldown, but actually skip it
+						}
+					}
+				}
+			}
+
 			if(!coolDowns.Find("([name])[skill]")){
 				coolDowns.Add(list("([name])[skill]" = (world.time + time)))
 				return TRUE;
@@ -144,6 +155,15 @@ DBZFE
 				}else{
 					coolDowns["([name])[skill]"] = (coolDowns["([name])[skill]"] + time);
 				}
+				return TRUE;
+			}
+
+			return FALSE;
+		}
+
+		removeCooldown(name,skill){
+			if(coolDowns.Find("([name])[skill]")){
+				coolDowns.Remove("([name])[skill]")
 				return TRUE;
 			}
 

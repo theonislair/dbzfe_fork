@@ -16,6 +16,12 @@ proc
 						send("{B[c.mobRef:fCombat.comboCount["[target.ID]"] - 1]{x {Rhit combo!{x",c.mobRef)
 						c.comboList.Remove("[target.ID]")
 						c.comboCount.Remove("[target.ID]")
+						// Clear any remaining combo technique flags when combo ends
+						for(var/key in c.comboTechniquesActive){
+							if(findtext(key, "[c.mobRef:name]-[target.ID]-")){
+								c.comboTechniquesActive.Remove(key)
+							}
+						}
 						/* SEND EM FLYING*/
 						if(xTendCombo && (game.dir2text_map(game.dirRev(c.mobRef:dir)) in target.Exits(TRUE))){
 							var
@@ -57,6 +63,12 @@ proc
 					target.stunTime = world.time + 31
 					c.comboList.Remove("[target.ID]")
 					c.comboCount.Remove("[target.ID]")
+					// Clear combo technique flags when combo is broken
+					for(var/key in c.comboTechniquesActive){
+						if(findtext(key, "[c.mobRef:name]-[target.ID]-")){
+							c.comboTechniquesActive.Remove(key)
+						}
+					}
 				}
 				return (world.time + t.delay);
 			}
@@ -160,7 +172,18 @@ Command/Technique
 	}
 
 	command(mob/user, mob/target, isEnergy=FALSE, attkName=NULL,or=FALSE){
-		if(!istype(user,/mob/Player/Immortal) && game.checkCooldown(user.name,internal_name)){
+		// Check if this technique is part of an active combo
+		var/isComboTechnique = FALSE
+		if(user && target && user.fCombat && comboAble){
+			isComboTechnique = user.fCombat.isPartOfCombo(target, src)
+			if(isComboTechnique){
+				// Set flag to prevent cooldowns during combo execution
+				user.fCombat.setComboTechniqueActive(target, src)
+			}
+		}
+
+		// Only check cooldowns if this isn't part of a combo
+		if(!isComboTechnique && !istype(user,/mob/Player/Immortal) && game.checkCooldown(user.name,internal_name)){
 			send("You can't use [name] for another [num2text((game.coolDowns["([user.name])[internal_name]"] - world.time) / 10,3)] second(s)!",user)
 			return TRUE;
 		}
@@ -198,5 +221,11 @@ Command/Technique
 					if(!(target in user.fCombat.hostileTargets)){user.fCombat.addHostile(target)}
 				}
 			}
+		}
+
+		// Clear combo technique flag after technique execution
+		if(isComboTechnique && user && target && user.fCombat){
+			spawn(1) // Clear flag after technique finishes executing
+				user.fCombat.clearComboTechniqueActive(target, src)
 		}
 	}
