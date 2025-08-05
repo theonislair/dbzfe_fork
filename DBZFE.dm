@@ -4,7 +4,7 @@ var/MUDbase/MUDbase = new()
 var/fQuest_Factory/qFac = new/fQuest_Factory
 var/textLib = "lib/unix/parseText.so";
 var/cryptoLib = "lib/unix/crypto.so";
-var/BuildDate = "August 2nd @ 12:50 PM EST";
+var/BuildDate = "August 4th 2025 @ 10:10 PM EST";
 
 world
 	name = "Drag(*)nBall Z: Fighter Edition"

@@ -170,7 +170,7 @@ Combat related defines
 #define data_dir "world_files"
 #define www_dir "/var/www/html"
 #define crypto_salt "A495270!"
-#define MAX_PL 2.147e+025
+#define MAX_PL 9.999e+025
 #define MIN_PL 1
 #define MIN_ENERGY 1
 #define SELF 10
