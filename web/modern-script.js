@@ -97,6 +97,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initParticleEffects();
     initEnergyOrbs();
     initContentAnimations();
+    initNavigationDropdowns(); // Add this line
     
     // Mobile Menu Toggle
     function initMobileMenu() {
@@ -121,16 +122,30 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
             
-            // Close menu when clicking on links
-            const navLinks = navMenu.querySelectorAll('a');
+            // Close menu when clicking on regular navigation links (but NOT dropdown toggles)
+            const navLinks = navMenu.querySelectorAll('a:not(.nav-toggle)');
             navLinks.forEach(link => {
                 link.addEventListener('click', function() {
-                    navMenu.classList.remove('active');
-                    mobileToggle.classList.remove('active');
-                    const spans = mobileToggle.querySelectorAll('span');
-                    spans[0].style.transform = 'none';
-                    spans[1].style.opacity = '1';
-                    spans[2].style.transform = 'none';
+                    // Only close if this is not inside a dropdown submenu that's currently open
+                    const parentDropdown = this.closest('.nav-dropdown');
+                    if (parentDropdown && parentDropdown.classList.contains('active')) {
+                        // This is a submenu link in an open dropdown - close the menu
+                        navMenu.classList.remove('active');
+                        mobileToggle.classList.remove('active');
+                        const spans = mobileToggle.querySelectorAll('span');
+                        spans[0].style.transform = 'none';
+                        spans[1].style.opacity = '1';
+                        spans[2].style.transform = 'none';
+                    } else if (!parentDropdown) {
+                        // This is a regular nav link (not in a dropdown) - close the menu
+                        navMenu.classList.remove('active');
+                        mobileToggle.classList.remove('active');
+                        const spans = mobileToggle.querySelectorAll('span');
+                        spans[0].style.transform = 'none';
+                        spans[1].style.opacity = '1';
+                        spans[2].style.transform = 'none';
+                    }
+                    // If it's a dropdown toggle, do nothing - let the dropdown handle it
                 });
             });
         }
@@ -157,29 +172,30 @@ document.addEventListener('DOMContentLoaded', function() {
             contentBox.classList.add('fade-in');
         }
         
+        // Disabled problematic scroll animations that were causing content to disappear
         // Intersection Observer for scroll animations
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
+        // const observerOptions = {
+        //     threshold: 0.1,
+        //     rootMargin: '0px 0px -50px 0px'
+        // };
         
-        const observer = new IntersectionObserver(function(entries) {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
-                }
-            });
-        }, observerOptions);
+        // const observer = new IntersectionObserver(function(entries) {
+        //     entries.forEach(entry => {
+        //         if (entry.isIntersecting) {
+        //             entry.target.style.opacity = '1';
+        //             entry.target.style.transform = 'translateY(0)';
+        //         }
+        //     });
+        // }, observerOptions);
         
         // Observe elements for scroll animations
-        const animateElements = document.querySelectorAll('.content-box, .footer');
-        animateElements.forEach(el => {
-            el.style.opacity = '0';
-            el.style.transform = 'translateY(30px)';
-            el.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
-            observer.observe(el);
-        });
+        // const animateElements = document.querySelectorAll('.content-box, .footer');
+        // animateElements.forEach(el => {
+        //     el.style.opacity = '0';
+        //     el.style.transform = 'translateY(30px)';
+        //     el.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+        //     observer.observe(el);
+        // });
     }
     
     // Enhanced Particle Effects
@@ -260,25 +276,26 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Content Animations
     function initContentAnimations() {
+        // Disabled problematic typewriter effect that was causing text to disappear
         // Typewriter effect for titles
-        const titles = document.querySelectorAll('h1, h2');
-        titles.forEach(title => {
-            const text = title.textContent;
-            title.textContent = '';
-            title.style.borderRight = '2px solid #ff6b1a';
-            
-            let i = 0;
-            const typeInterval = setInterval(() => {
-                title.textContent += text.charAt(i);
-                i++;
-                if (i >= text.length) {
-                    clearInterval(typeInterval);
-                    setTimeout(() => {
-                        title.style.borderRight = 'none';
-                    }, 500);
-                }
-            }, 50);
-        });
+        // const titles = document.querySelectorAll('h1, h2');
+        // titles.forEach(title => {
+        //     const text = title.textContent;
+        //     title.textContent = '';
+        //     title.style.borderRight = '2px solid #ff6b1a';
+        //     
+        //     let i = 0;
+        //     const typeInterval = setInterval(() => {
+        //         title.textContent += text.charAt(i);
+        //         i++;
+        //         if (i >= text.length) {
+        //             clearInterval(typeInterval);
+        //             setTimeout(() => {
+        //                 title.style.borderRight = 'none';
+        //             }, 500);
+        //         }
+        //     }, 50);
+        // });
         
         // Enhanced hover effects for navigation
         const navLinks = document.querySelectorAll('.nav-menu a');
@@ -331,6 +348,152 @@ document.addEventListener('DOMContentLoaded', function() {
                 flashStyle.remove();
             }, 500);
         });
+    }
+    
+    // Enhanced Navigation Dropdown Behavior
+    function initNavigationDropdowns() {
+        const dropdowns = document.querySelectorAll('.nav-dropdown');
+        
+        dropdowns.forEach(dropdown => {
+            const toggle = dropdown.querySelector('.nav-toggle');
+            const submenu = dropdown.querySelector('.nav-submenu');
+            let hideTimeout;
+            
+            if (!toggle || !submenu) return;
+            
+            // Function to check if we're on mobile
+            function isMobile() {
+                return window.innerWidth <= 768 || 'ontouchstart' in window;
+            }
+            
+            // Handle click/touch on toggle
+            toggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Clear any existing hide timeout
+                clearTimeout(hideTimeout);
+                
+                // Close other dropdowns on mobile
+                if (isMobile()) {
+                    dropdowns.forEach(otherDropdown => {
+                        if (otherDropdown !== dropdown) {
+                            otherDropdown.classList.remove('active', 'hover');
+                        }
+                    });
+                }
+                
+                // Toggle active class
+                const isActive = dropdown.classList.contains('active');
+                dropdown.classList.toggle('active');
+                dropdown.classList.remove('hover');
+                
+                // Add debugging for mobile
+                console.log('Dropdown clicked:', {
+                    isMobile: isMobile(),
+                    wasActive: isActive,
+                    nowActive: dropdown.classList.contains('active'),
+                    submenuHeight: submenu.scrollHeight
+                });
+                
+                // On mobile, keep dropdown open until another action
+                if (!isMobile()) {
+                    // On desktop, auto-close after 3 seconds
+                    if (dropdown.classList.contains('active')) {
+                        setTimeout(() => {
+                            dropdown.classList.remove('active');
+                        }, 3000);
+                    }
+                }
+            });
+            
+            // Add touch event for better mobile support
+            toggle.addEventListener('touchend', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Trigger the same behavior as click
+                this.click();
+            });
+            
+            // Handle mouse enter to show dropdown (desktop only)
+            dropdown.addEventListener('mouseenter', function() {
+                if (!isMobile()) { // Only on desktop
+                    clearTimeout(hideTimeout);
+                    dropdown.classList.add('hover');
+                }
+            });
+            
+            // Handle mouse leave with delay (desktop only)
+            dropdown.addEventListener('mouseleave', function() {
+                if (!isMobile()) { // Only on desktop
+                    dropdown.classList.remove('hover');
+                    hideTimeout = setTimeout(() => {
+                        dropdown.classList.remove('active');
+                    }, 500);
+                }
+            });
+            
+            // Handle clicks on submenu links
+            const submenuLinks = submenu.querySelectorAll('a');
+            submenuLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    // Add visual feedback
+                    this.style.background = 'rgba(255, 107, 26, 0.3)';
+                    
+                    // Close dropdown immediately on mobile after link click
+                    if (isMobile()) {
+                        dropdown.classList.remove('active', 'hover');
+                    } else {
+                        // Desktop: Keep dropdown visible briefly during navigation
+                        clearTimeout(hideTimeout);
+                        hideTimeout = setTimeout(() => {
+                            dropdown.classList.remove('active', 'hover');
+                        }, 1000);
+                    }
+                    
+                    // Reset visual feedback after a short time
+                    setTimeout(() => {
+                        this.style.background = '';
+                    }, 200);
+                });
+            });
+        });
+        
+        // Close dropdowns when clicking outside (mobile)
+        document.addEventListener('click', function(e) {
+            if (isMobile()) {
+                if (!e.target.closest('.nav-dropdown')) {
+                    dropdowns.forEach(dropdown => {
+                        dropdown.classList.remove('active', 'hover');
+                    });
+                }
+            }
+        });
+        
+        // Close dropdowns when touching outside (mobile)
+        document.addEventListener('touchend', function(e) {
+            if (isMobile()) {
+                if (!e.target.closest('.nav-dropdown')) {
+                    dropdowns.forEach(dropdown => {
+                        dropdown.classList.remove('active', 'hover');
+                    });
+                }
+            }
+        });
+        
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            // Reset dropdown states when switching between mobile and desktop
+            dropdowns.forEach(dropdown => {
+                dropdown.classList.remove('active', 'hover');
+            });
+        });
+        
+        // Helper function for mobile detection
+        function isMobile() {
+            return window.innerWidth <= 768 || 'ontouchstart' in window;
+        }
     }
     
     // Performance optimized scroll handler
