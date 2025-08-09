@@ -159,17 +159,6 @@ We welcome contributions! Here's how you can help:
 - 🌍 Translation support
 - 🧪 Testing and quality assurance
 
-## 📋 TODO List
-
-- [ ] Docker containerization
-- [ ] WebSocket MUD client
-- [ ] Mobile app development
-- [ ] Advanced admin tools
-- [ ] Automated testing suite
-- [ ] Performance optimizations
-- [ ] Additional quest content
-- [ ] PvP tournament system
-
 ## 🔧 Technical Details
 
 ### Built With
